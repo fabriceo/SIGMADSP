@@ -179,7 +179,6 @@ void sigmadspClass::softResetCycle(){
 
 
 #if !defined(NO_GLOBAL_INSTANCES) && !defined(NO_GLOBAL_SIGMADSP)
-#error shit
 sigmadspClass DSP;
 void DSPwriteMultipleBytes(uint16_t address, uint16_t number, unsigned char *p) {
     if (address == REG_SOFT_RESET_ADDR) DSP.slowSPI();\
