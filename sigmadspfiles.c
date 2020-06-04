@@ -1,5 +1,6 @@
 
 #include "sigmadspfiles.h" 
+#ifdef DSP_GENERIC_OK
 
 #include <stdlib.h>
 #include <string.h>
@@ -446,4 +447,4 @@ long miniParseFile(dspPreset_t * p, long preset, char * filename){
     }
     return check;
 }
-
+#endif
