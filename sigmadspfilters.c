@@ -9,7 +9,6 @@
 //#include <stdio.h>
 
 #include "sigmadspfilters.h" // this also include the sigmastudio generic file
-#include  <math.h>
 
 const char * dspFilterNames[] = { "NONE ",
   "LPBE1","LPBE2","LPBE3","LPBE4","LPBE5","LPBE6","LPBE7","LPBE8",
@@ -112,6 +111,11 @@ int dspFilterIsEQ(enum filterTypes ftype){
 dspBiquadCoefs_t tempBiquad[tempBiquadMax];         // temporary array of max 4 biquad cell
 long tempBiquadIndex = 0;
 float dspSamplingFreq = 192000.0;
+float * dspFilterResult = &tempBiquad[0].b0;
+// default template for no filter
+const dspFilter_t dspFilterNone = { FNONE, 0,0,0, 0.0, 0.0, 0.0 };
+
+
 
 #ifndef M_PI
 #define M_PI (3.1415926536)
@@ -654,4 +658,17 @@ int dsp_filter(enum filterTypes type, float freq, float Q, float gain) {
 
     }
     return tmp;
+}
+
+int dspFilterConvert(dspFilter_t f, int fs){
+    if (f.bypass) f = dspFilterNone;
+    dspSamplingFreq = fs;
+    tempBiquadIndex = 0;
+    int result = dsp_filter(f.ftype, f.freq, f.Q, f.gain);
+    if (f.invert) {
+        tempBiquad[0].b0 = - tempBiquad[0].b0;
+        tempBiquad[0].b1 = - tempBiquad[0].b1;
+        tempBiquad[0].b2 = - tempBiquad[0].b2;
+    }
+    return result;
 }

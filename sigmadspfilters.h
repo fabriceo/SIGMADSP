@@ -1,6 +1,7 @@
 #ifndef SIGMADSP_FILTER_H
 #define SIGMADSP_FILTER_H
 
+#include  <math.h>
 #define dspFilterParam_t float
 
 // the list of all supported filters.
@@ -32,24 +33,64 @@ typedef struct  {    // basic structure requires 16 bytes per user defined filte
 
 // basic structure for holding the biquad coefficient computed for a given sampling rate
 typedef struct {
-    dspFilterParam_t b0;
-    dspFilterParam_t b1;
-    dspFilterParam_t b2;
-    dspFilterParam_t a1;
-    dspFilterParam_t a2;
+    dspFilterParam_t b0;    //xn
+    dspFilterParam_t b1;    //xn-1
+    dspFilterParam_t b2;    //xn-2
+    dspFilterParam_t a1;    //yn-1
+    dspFilterParam_t a2;    //yn-2
 } dspBiquadCoefs_t;
+
+
+//same structure but as 8.24 integer, compatible with sigmadsp > ADAU1452 (not 1701)
+typedef struct {
+    long b0;
+    long b1;
+    long b2;
+    long a1;
+    long a2;
+} dspBiquadCoefs824_t;
+
+// convert a deciBell value to a float number. e.g. dB2gain(10.0) => 3.162277
+// expected to be optimized by compiler where dB is known at compile time
+static inline float dB2gain(float db){
+    db /= 20.0;
+    return pow(10,db); }
+
+
+// convert a float number to a fixed point integer with a mantissa of 24 bit
+// eg : the value 0.5 will be coded as 0x00800000
+static inline long dspQ8_24(float f){
+    float maxf = (1 << 7);
+    if (f >=   maxf)  
+       return 0x7fffffff;
+    else
+        if (f < (-maxf))  
+           return 0xffffffff;
+    else {
+         long mul = 1 << 24;
+         f *= mul;
+         return f;   // will convert to integer
+    }
+}
+
+
 
 // temporary arry to store the calculated biquad value for a given filter
 #define tempBiquadMax 4
 extern dspBiquadCoefs_t tempBiquad[tempBiquadMax];         // temporary array of max 4 biquad cell
 extern long tempBiquadIndex;
 extern float dspSamplingFreq;
+extern float * dspFilterResult;
+
+extern const dspFilter_t dspFilterNone; // default content for fnone filter
 
 extern const char * dspFilterNames[];   // short comprehensive name for the filter ftype, 5 char max
 extern const char   dspFilterCells[];   // number of biquad cells needed for the filter ftype (1..4) 0 for fnone
 extern const char   dspFilterHP[];      // show compatibility of the filter as High Pass
 extern const char   dspFilterLP[];      // show compatibility of the filter as low Pass
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 // search for the name of a filter in the dspFilterNames table and return index found
 extern enum filterTypes dspFilterNameSearch(char *s);
 extern int dspFilterNeedQ(enum filterTypes ftype);
@@ -59,4 +100,8 @@ extern int dspFilterIsLP(enum filterTypes ftype);
 extern int dspFilterIsEQ(enum filterTypes ftype);
 // compute filter coefficients and store them in "tempBiquad"
 extern int dsp_filter(enum filterTypes type, float freq, float Q, float gain);
+extern int dspFilterConvert(dspFilter_t f, int fs);
+#ifdef __cplusplus
+}
+#endif
 #endif

@@ -1,1 +1,1 @@
-#include "sigmastudio/blink_1467_IC_1_PARAM.h" //"generic2x4v5_IC_1_PARAM.h"
+#include "sigmastudio/filter96k_1452_IC_1_PARAM.h" //"generic2x4v5_IC_1_PARAM.h"

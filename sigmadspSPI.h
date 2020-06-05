@@ -12,6 +12,8 @@
 #define SIGMADSP_DM1_END    0xB000
 #define SIGMADSP_PM_BEGIN   0xC000
 #define SIGMADSP_PM_END     0xF000
+#define SIGMADSP_REG_BEGIN  0xF000
+#define SIGMADSP_REG_END    0xF900
 
 #define SIGMADSP_READ 1
 #define SIGMADSP_WRITE 0
@@ -33,25 +35,35 @@
 
 class sigmadspClass {
 public:
-    sigmadspClass() :   archNum(0), CS(0), CS2(0), currentPage(0), SPIclock(0) {}
+    sigmadspClass() :   archNum(0), CS(0), CS2(0), currentPage(0), SPIclock(0), safeloadAddr(0) {}
     void fastSPI();
     void slowSPI();
     void select();
     void unselect();
     void swapCS();
-    void begin(const char * archi, uint8_t chipSelect);
-    void begin(const char * archi, uint8_t chipSelect1, uint8_t chipSelect2);
+    void begin(const char * archi, uint16_t safeload, uint8_t chipSelect);
+    void begin(const char * archi, uint16_t safeload, uint8_t chipSelect1, uint8_t chipSelect2);
     void end();
+    int identifyMemoryArea(uint16_t address);
+    void write(uint16_t address);
+    void read(uint16_t address);
     void writeRegister(uint16_t address, uint16_t value);
     uint16_t readRegister(uint16_t address);
     void writeValue(uint16_t address, uint32_t value);
+    void writeValueFloat(uint16_t address, float value);
     uint32_t readValue(uint16_t address);
+    float readValueFloat(uint16_t address);
     uint32_t * writeArray(uint16_t address, uint16_t number, uint32_t *p);
+    float * writeArrayFloat(uint16_t address, uint16_t number, float *p);
     void writeTable(uint32_t *p);
     void writeMultipleBytes(uint16_t address, uint16_t number, unsigned char *p);
     void memoryPage(uint8_t page);
     void softReset(uint16_t value);
     void softResetCycle();
+    uint32_t int824(float f);
+    float float824(uint32_t i);
+    void writeBiquads(uint16_t address, uint16_t number, float *p);
+    void writeBiquadSafeload(uint16_t address, uint16_t number, float *p);
     const char * arch;
     int archNum;
 private:
@@ -59,6 +71,9 @@ private:
     uint8_t CS2;
     uint8_t currentPage;
     uint32_t SPIclock;
+    uint16_t safeloadAddr;
+    uint16_t memMin;
+    uint16_t memMax;
 };
 
 #if !defined(NO_GLOBAL_INSTANCES) && !defined(NO_GLOBAL_SIGMADSP)

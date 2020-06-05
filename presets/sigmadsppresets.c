@@ -7,9 +7,6 @@
  */
 
 #include "sigmadsppresets.h" // this also include the sigmastudio generic file and filters
-// default template for no filter
-const dspFilter_t dspFilterNone = { FNONE, 0,0,0, 0.0, 0.0, 0.0 };
-
 const dspBiquadCoefs_t dspBiquadNone = { 1.0, 0.0, 0.0, 0.0, 0.0 };
 
 #ifdef DSP_GENERIC_OK

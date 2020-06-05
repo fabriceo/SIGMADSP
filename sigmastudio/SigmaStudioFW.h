@@ -16,7 +16,6 @@ extern uint16_t DSPdownloadParam();
 // from original sigmastudioFW.h, customized.
 // DM1 access is replaced with a simple memory reset, 
 // avoiding a big table of "0" in this program (compiler optimization)
-// PARAM_ADDR usually correspond to DM0 area and is kept as-is
 /* 
  * Write to multiple Device registers 
  */

@@ -4,17 +4,6 @@
 #include "sigmadspgeneric.h"
 #include "sigmadspfilters.h"
 
-#if 0
-//below structure using bitfield is not used in this version
-typedef struct {
-    long mantissa:24;
-    long integer:8;
-} dsp824_t;
-_Static_assert(sizeof(dsp824_t)==4,"dsp8_24_t is not packed as 32bits by this compiler");
-#else
-#define dsp824_t long
-#endif
-
 
 
 #ifdef DSP_GENERIC_OK
@@ -46,15 +35,6 @@ typedef struct  dspPreset_s {
     dspFilterBlock_t fb[DSP_IO_TOTAL]; // a table of filter block defined in the structure above
 } dspPreset_t;
 
-//same structure but as 8.24 integer, compatible with sigmadsp > ADAU1452 (not 1701)
-typedef struct {
-    dsp824_t b0;
-    dsp824_t b1;
-    dsp824_t b2;
-    dsp824_t a1;
-    dsp824_t a2;
-} dspBiquadCoefs824_t;
-
 
 
 // buffer required to download a filter block configuration to the sigmadsp param memory
@@ -62,34 +42,8 @@ typedef struct {
 
 typedef unsigned long sigmadspBuffer_t[DSP_PARAM_BUFFER_SIZE];   // provide a simple type sigmadspBuffer_t to declare the table within user code source,
 
-#if 0
-// convert a deciBell value to a float number. e.g. dB2gain(10.0) => 3.162277
-// expected to be optimized by compiler where dB is known at compile time
-static inline float dB2gain(dspFloat_t db){
-    db /= 20.0;
-    return pow(10,db); }
-#endif
-
-// convert a float number to a fixed point integer with a mantissa of 24 bit
-// eg : the value 0.5 will be coded as 0x00800000
-static inline dsp824_t dspQ8_24(float f){
-    float maxf = (1 << 7);
-    if (f >=   maxf)  
-       return 0x7fffffff;
-    else
-        if (f < (-maxf))  
-           return 0xffffffff;
-    else {
-         long mul = 1 << 24;
-         f *= mul;
-         return f;   // will convert to integer
-    }
-}
-
 // this macro makes life easier to go trough each of the filter banks , including inputs & outputs
 #define DSP_FOR_ALL_CHANNELS(p,ch) for (ch=0; ch < (p->numberOfInputs + p->numberOfOutputs); ch++)
-
-extern const dspFilter_t dspFilterNone; // default content for fnone filter
 
 // return the checksum of a preset
 extern long  dspPresetChecksum(dspPreset_t * p);
