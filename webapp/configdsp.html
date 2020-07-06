@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+    <title>config SIGMADSP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"charset="UTF-8" />
+    <link rel="stylesheet" type="text/css" href="w3.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.0"></script>
+    <style>
+        .tdhover:hover { background-color:#87CEEB; }
+
+        .slidecontainer { width: 100%; }
+        .slider { -webkit-appearance: none; width: 70%; height: 15px; border-radius: 5px; background: #d3d3d3; outline: none; opacity: 0.7;
+            -webkit-transition: .2s; transition: opacity .2s; }
+        .slider:hover { opacity: 1; }
+        .slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 25px; height: 25px; border-radius: 50%; background: #4CAF50; cursor: pointer; }
+        .slider::-moz-range-thumb { width: 25px; height: 25px; border-radius: 50%; background: #4CAF50; cursor: pointer; }
+        .bsel_   {opacity: 1;}
+        .bunsel_ {opacity: 0.5;}
+        .bunsel_:hover {opacity: 0.8;}
+    </style>
+</head>
+<body onload="bodyonLoad()" class="w3-animate-opacity">
+
+<div id="app">
+
+
+
+
+
+<!--<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.1.0/Chart.min.js"> 
+    </script>
+-->
+<div class="w3-card w3-blue w3-padding-small w3-center" onclick="bchannel(0)">
+    <h1>SIGMADSP CONFIGURATION</h1>
+    <p id="topinfo" class="w3-center">trying to connect...</p>
+</div>
+<div id="pageready" class="w3-margin w3-center w3-card w3-padding-24" style="display:none">
+    <div id="selvolume">
+        <p class="w3-xxlarge">{{ dspstatus.volume }} dB</p>
+        <div class="slidecontainer">
+            {{ volume.min }} dB
+            <input  id="webVolume" class="slider" v-model="dspstatus.volume" type="range" v-bind:min="volume.min" v-bind:max="volume.max" step="1" />
+            {{ volume.max }} dB
+        </div>
+        <div id="selsource" class="w3-margin w3-center w3-card w3-padding-24">
+            <table style="width:100%;">
+                <tbody id="tbodysource">
+                <!-- placeholder for source and preset buttons-->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div v-show="toggleSaveModal" id="saveorcancel" class="w3-modal w3-padding-24">
+        <div class="w3-modal-content w3-red w3-center">
+
+            <h2 id="savingmsg">{{ savingMsg }}</h2>
+
+            <button id="bsave" v-on:click="bsave" class="w3-bttn w3-light-grey w3-xlarge w3-ripple w3-wide" style="width:27%;">Yes</button>
+            <button id="bdiscard" v-on:click="bdiscard" class="w3-bttn w3-light-grey w3-xlarge w3-ripple w3-wide" style="width:26%;">No</button>
+            <button id="bcancel" v-on:click="toggleSaveModal = !toggleSaveModal" class="w3-bttn w3-light-grey w3-xlarge w3-ripple w3-wide" style="width:27%;">cancel</button>
+            <br><br>
+        </div>
+    </div>
+    <p id="channelinfo" class="w3-center">channel info</p>
+    <div class="w3-margin w3-center w3-card w3-padding-24">
+        <table style="width:100%">
+            <tbody id="tbodychannel">
+
+            </tbody>
+        </table>
+    </div>
+
+    <!-- FUNCTION Section CHANNEL / MIXER / EQ / HP / LP / FIR-->
+    <div class="w3-margin w3-center w3-card w3-padding-24">
+        <div id="divfunc" class="w3-center">
+            <p id="tbodyfunc"></p>
+
+            <!-- FILTERS Panel section-->
+            <div id="divfilter" class="w3-margin w3-center w3-card w3-padding-24">
+
+                <div id="selectfilters" style="display: none;">
+
+                    <!-- below the list of <select> possibilities used by the js routine-->
+                    <select id="hpfilterbase">
+                        <option value="NONE ">None</option><option value="HP1  ">HP1   6db</option><option value="HP2  ">HP2  12db</option>
+                    </select>
+                    <select id="lpfilterbase">
+                        <option value="NONE ">None</option><option value="LP1  ">LP1   6db</option><option value="LP2  ">LP2  12db</option>
+                    </select>
+                    <select id="hpfilter">
+                        <optgroup label="High Pass">
+                            <option value="NONE ">None</option>    <option value="HP1  ">HP1   6db</option>    <option value="HP2  ">HP2  12db</option>   <option value="HPSUB">Subst-delay</option>
+                        </optgroup>
+                        <optgroup label="Bessel">
+                            <option value="HPBE2">Bes2 12db</option>    <option value="HPBE3">Bes3 18db</option>    <option value="HPBE4">Bes4 24db</option>    <option value="HPBE6">Bes6 36db</option>    <option value="HPBE8">Bes8 48db</option>
+                        </optgroup>
+                        <optgroup label="Butterworth">
+                            <option value="HPBU2">But2 12db</option>    <option value="HPBU3">But3 18db</option>   <option value="HPBU4">But4 24db</option>    <option value="HPBU6">But6 36db</option>    <option value="HPBU8">But8 48db</option>
+                        </optgroup>
+                        <optgroup label="Linkwitz-Rilley">
+                            <option value="HPLR2">LR2  12db</option>    <option value="HPLR4">LR4  24db</option>    <option value="HPLR6">LR6  36db</option>   <option value="HPLR8">LR8  48db</option>
+                        </optgroup>
+                    </select>
+                    <select id="lpfilter">
+                        <optgroup label="Low Pass">
+                            <option value="NONE ">None</option>    <option value="LP1  ">LP1   6db</option>    <option value="LP2  ">LP2  12db</option>
+                        </optgroup>
+                        <optgroup label="Bessel">
+                            <option value="LPBE2">Bes2 12db</option>    <option value="LPBE3">Bes3 18db</option>   <option value="LPBE4">Bes4 24db</option>    <option value="LPBE6">Bes6 36db</option>    <option value="LPBE8">Bes8 48db</option>
+                        </optgroup>
+                        <optgroup label="Butterworth">
+                            <option value="LPBU2">But2 12db</option>    <option value="LPBU3">But3 18db</option>    <option value="LPBU4">But4 24db</option>    <option value="LPBU6">But6 36db</option>    <option value="LPBU8">But8 48db</option>
+                        </optgroup>
+                        <optgroup label="Linkwitz-Rilley">
+                            <option value="LPLR2">LR2  12db</option> <option value="LPLR4">LR4  24db</option> <option value="LPLR6">LR6  36db</option> <option value="LPLR8">LR8  48db</option>
+                        </optgroup>
+                    </select>
+                    <select id="eqfilter">
+                        <option value="NONE ">None</option><option value="PEQ  ">Peaking</option><option value="NOTCH">Notch</option><option value="ALLP1">All-Pass1    6db</option><option value="ALLP2">All-Pass2   12db</option><option value="LSH1 ">Low-Shelf1   6db</option><option value="LSH2 ">Low-Shelf2  12db</option><option value="HSH1 ">High-Shelf1  6db</option><option value="HSH2 ">High-Shelf2 12db</option>
+                    </select>
+                </div>
+                <table style="width:100%">
+                    <tr>
+                        <th style="width:30%">Filter</th>
+                        <th style="width:15%">Freq</th>
+                        <th style="width:15%">Q</th>
+                        <th style="width:15%">Gain</th>
+                        <th style="width:10%">Byp</th>
+                        <th style="width:15%">Inv</th>
+                    </tr>
+                    <tr id="trfilt1"  onmousedown="filtclick(1)">
+                        <td><select id="ftype1" onchange="ftypechange(1)" onmousedown="filtclick(1)" style="width:70%"></select></td>
+                        <td><input id="fin1" class="w3-center" type="number" min="20" max="40000" onchange="finchange(1)" onmousedown="filtclick(1)" style="width:80%"></td>
+                        <td><input id="qin1" class="w3-center" onchange="qinchange(1)" onmousedown="filtclick(1)"style="width:70%"></td>
+                        <td><input id="gin1" class="w3-center" onchange="ginchange(1)" onmousedown="filtclick(1)"style="width:70%"></td>
+                        <td><input id="iin1" type="checkbox"   onchange="iinchange(1)" onmousedown="filtclick(1)"></td>
+                        <td><input id="bin1" type="checkbox"   onchange="binchange(1)" onmousedown="filtclick(1)"></td>
+                    </tr>
+                    <tbody id="trfilt_"></tbody>
+                </table>
+            </div>
+            <!-- CHANNEL Panel section-->
+            <div id="divchannel" class="w3-margin w3-center w3-card w3-padding-24">
+                <table  style="width:100%">
+                    <tr>
+                        <th style="width:35%">Gain</th>
+                        <th style="width:10%">Mute</th>
+                        <th style="width:10%">Inv</th>
+                        <th style="width:35%">I/O Name</th>
+                    </tr>
+                    <tr  class="w3-light-grey">
+                        <td class="tdhover"><input id="gain" class="w3-center" onchange="gainchange()" style="width:70%"></td>
+                        <td class="tdhover"><input id="mute" type="checkbox" onchange="mutechange()"></td>
+                        <td class="tdhover"><input id="inv"  type="checkbox" onchange="invchange()"></td>
+                        <td class="tdhover"><input id="name" class="w3-center" onchange="namechange()" style="width:70%"></td>
+                    </tr>
+                </table>
+                <br>
+                <table id="tabledelay"  style="width:100%">
+                    <tr>
+                        <th style="width:35%">Delay</th>
+                        <th style="width:10%">us</th>
+                        <th style="width:10%">mm</th>
+                        <th style="width:35%">Samples @ 192k</th>
+                    </tr>
+                    <tr class="w3-light-grey">
+                        <td class="tdhover"><input id="delay" type="number" min="0" max="3000" class="w3-center" onchange="delaychange()" style="width:70%"></td>
+                        <td><input id="us" type="radio" onchange="uschange()"></td>
+                        <td><input id="mm" type="radio" onchange="mmchange()"></td>
+                        <td id="samples"></td>
+                    </tr>
+                </table>
+            </div>
+            <!-- MIXER Panel section-->
+            <div id="divmixer" class="w3-margin w3-center w3-card w3-padding-24">
+                <table  style="width:100%;">
+                    <tr>
+                        <th style="width:45%;">Channel</th>
+                        <th style="width:45%;">value</th>
+                    </tr>
+                    <tr id="trmixer1" onmousedown="mixclick(1)">
+                        <td><p id="mixname1">input</p></td>
+                        <td><input id="mix1" class="w3-center" min="-100" max="20" onchange="mixchange(1)" onmousedown="mixclick(1)"></td>
+                    </tr>
+                    <tbody id="trmixer_"></tbody>
+                </table>
+            </div>
+            <!-- FIR Panel section-->
+            <div id="divfir" class="w3-margin w3-center w3-card w3-padding-24">
+                <table  style="width:100%;" class="w3-padding-12" >
+                    <tr>
+                        <th style="width:35%;">FIR</th>
+                        <th style="width:55%;">name</th>
+                    </tr>
+                    <tr>
+                        <td>x</td>
+                        <td class="tdhover">y</td>
+                    </tr>
+                    <tbody id="trfir_"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="w3-padding w3-center">
+        <i><a href="index.html" style="text-decoration: none;">main menu</a></i><br>
+    </div>
+
+    <div class="w3-padding w3-center" style="display: none;">
+        <canvas id="line-chart" width="800" height="450"></canvas>
+    </div>
+
+</div>
+
+    <script type="text/javascript" src="configdsp.js"></script>
+
+
+</body>
+
+</html>

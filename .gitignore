@@ -34,3 +34,4 @@ xsim.args
 *.bak
 **/*.cproject
 **/*.project
+.idea
